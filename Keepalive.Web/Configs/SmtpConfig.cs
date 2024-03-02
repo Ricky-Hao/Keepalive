@@ -1,4 +1,4 @@
-namespace Keepalive.Configs
+namespace Keepalive.Web.Configs
 {
     public class SmtpConfig
     {

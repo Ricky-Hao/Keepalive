@@ -4,9 +4,9 @@ namespace Keepalive.Web.HostedServices
     using System.Net.Mail;
     using System.Threading;
 
-    using Keepalive.Configs;
     using Keepalive.Database.Data;
     using Keepalive.Database.Models;
+    using Keepalive.Web.Configs;
 
     using Microsoft.EntityFrameworkCore;
 
@@ -80,12 +80,16 @@ namespace Keepalive.Web.HostedServices
         {
             try
             {
+                var record = new KeepaliveRecord { UserId = user.Id };
+                keepaliveContext.KeepaliveRecords.Add(record);
+                await keepaliveContext.SaveChangesAsync();
+
                 using var scope = serviceProvider.CreateScope();
                 var smtpCilent = scope.ServiceProvider.GetRequiredService<SmtpClient>();
                 var mail = new MailMessage(from: serviceConfig.Email.EmailAddress, to: user.Email)
                 {
                     Subject = $"[{user.MissCount + 1}/3] Keepalive check",
-                    Body = $"Missing count {user.MissCount}"
+                    Body = $"Missing count {user.MissCount}, Record: {record.Id}"
                 };
 
                 await smtpCilent.SendMailAsync(mail);

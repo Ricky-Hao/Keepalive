@@ -1,11 +1,11 @@
+using System.Net;
+using System.Net.Mail;
+
 using Keepalive.Configs;
 using Keepalive.Database.Data;
-using Keepalive.Web.Components;
 using Keepalive.Web.HostedServices;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
+
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 namespace Keepalive.Web;
 
@@ -21,6 +21,14 @@ public class Program
             .AddSingleton<ServiceConfig>(serviceConfig)
             .AddDbContextFactory<KeepaliveContext>(options => options.UseSqlite($"Data Source={serviceConfig.Database}"))
             .AddDbContext<KeepaliveContext>(options => options.UseSqlite($"Data Source={serviceConfig.Database}"))
+            .AddScoped(services =>
+            {
+                return new SmtpClient(serviceConfig.Email.Host, serviceConfig.Email.Port)
+                {
+                    Credentials = new NetworkCredential(serviceConfig.Email.Username, serviceConfig.Email.Password),
+                    EnableSsl = serviceConfig.Email.SSLEnable,
+                };
+            })
             .AddHostedService<KeepaliveService>()
             .AddRazorComponents()
             .AddInteractiveServerComponents();

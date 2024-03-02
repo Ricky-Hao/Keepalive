@@ -2,27 +2,27 @@ namespace Keepalive.Configs
 {
     public class SmtpConfig
     {
-        public string Host { get; set; } = null!;
+        public required string Host { get; set; }
 
         public int Port { get; set; }
 
-        public string Username { get; set; } = null!;
+        public bool SSLEnable { get; set; } = true;
 
-        public string Password { get; set; } = null!;
+        public required string Username { get; set; }
+
+        public required string Password { get; set; }
+
+        public required string EmailAddress { get; set; }
 
         public void Validate()
         {
-            if (string.IsNullOrWhiteSpace(Host))
-                throw new ArgumentNullException(nameof(Host));
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(Host);
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(Username);
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(Password);
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(EmailAddress);
 
             if (Port <= 0 || Port > 65535)
                 throw new ArgumentNullException(nameof(Host));
-
-            if (string.IsNullOrWhiteSpace(Username))
-                throw new ArgumentNullException(nameof(Username));
-
-            if (string.IsNullOrWhiteSpace(Password))
-                throw new ArgumentNullException(nameof(Password));
         }
     }
 }

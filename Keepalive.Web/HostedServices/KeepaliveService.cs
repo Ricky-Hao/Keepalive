@@ -1,28 +1,32 @@
 
 namespace Keepalive.Web.HostedServices
 {
-    using System.Runtime.ExceptionServices;
+    using System.Net.Mail;
     using System.Threading;
+
     using Keepalive.Configs;
     using Keepalive.Database.Data;
     using Keepalive.Database.Models;
+
     using Microsoft.EntityFrameworkCore;
-    using Microsoft.EntityFrameworkCore.Internal;
-    using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
-    using Microsoft.Extensions.Options;
 
     class KeepaliveService : BackgroundService
     {
         private readonly ServiceConfig serviceConfig;
         private readonly KeepaliveContext keepaliveContext;
         private readonly Timer timer;
-        private readonly AutoResetEvent autoResetEvent = new (false);
+        private readonly AutoResetEvent autoResetEvent = new(false);
+        private readonly IServiceProvider serviceProvider;
+        private readonly TimeSpan timerInterval = TimeSpan.FromHours(1);
+        private readonly ILogger<KeepaliveService> logger;
 
-        public KeepaliveService(ServiceConfig serviceConfig, IDbContextFactory<KeepaliveContext> dbContextFactory)
+        public KeepaliveService(ServiceConfig serviceConfig, IDbContextFactory<KeepaliveContext> dbContextFactory, IServiceProvider serviceProvider, ILogger<KeepaliveService> logger)
         {
             this.serviceConfig = serviceConfig;
+            this.serviceProvider = serviceProvider;
+            this.logger = logger;
             keepaliveContext = dbContextFactory.CreateDbContext();
-            timer = new Timer(SendKeepalive, autoResetEvent, Timeout.InfiniteTimeSpan, TimeSpan.FromSeconds(10));
+            timer = new Timer(SendKeepalive, autoResetEvent, Timeout.InfiniteTimeSpan, timerInterval);
         }
 
         public override void Dispose()
@@ -34,7 +38,7 @@ namespace Keepalive.Web.HostedServices
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            timer.Change(TimeSpan.Zero, TimeSpan.FromSeconds(10));
+            timer.Change(TimeSpan.Zero, timerInterval);
             while (!stoppingToken.IsCancellationRequested)
             {
                 Console.WriteLine("Keepalive Service is running.");
@@ -50,11 +54,12 @@ namespace Keepalive.Web.HostedServices
             var eventState = (AutoResetEvent)stateInfo;
             Console.WriteLine("SendKeepalive");
 
-            var userQuery = 
+            var userQuery =
                 from user in keepaliveContext.Users
                 select user;
 
-            userQuery.ForEachAsync(async uesr => {
+            userQuery.ForEachAsync(async uesr =>
+            {
                 Console.WriteLine($"Check {uesr.Name}");
                 var latestRecord = (
                     from record in keepaliveContext.KeepaliveRecords
@@ -73,8 +78,24 @@ namespace Keepalive.Web.HostedServices
 
         private async Task SendCheckEmail(User user)
         {
-            await Task.Yield();
-            Console.WriteLine($"Send check email to {user.Email}");
+            try
+            {
+                using var scope = serviceProvider.CreateScope();
+                var smtpCilent = scope.ServiceProvider.GetRequiredService<SmtpClient>();
+                var mail = new MailMessage(from: serviceConfig.Email.EmailAddress, to: user.Email)
+                {
+                    Subject = $"[{user.MissCount + 1}/3] Keepalive check",
+                    Body = $"Missing count {user.MissCount}"
+                };
+
+                await smtpCilent.SendMailAsync(mail);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("Failed to send email to {name}[{email}]. Exception: {ex}", user.Name, user.Email, ex);
+            }
+
+            logger.LogInformation("Sent email to user {name}[{email}].", user.Name, user.Email);
         }
     }
 }

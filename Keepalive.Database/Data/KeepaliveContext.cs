@@ -1,4 +1,5 @@
 using Keepalive.Database.Models;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace Keepalive.Database.Data

@@ -9,9 +9,9 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/Keepalive/bin/Debug/net8.0/Keepalive.dll",
+            "program": "${workspaceFolder}/Keepalive.Web/bin/Debug/net8.0/Keepalive.Web.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/Keepalive",
+            "cwd": "${workspaceFolder}/Keepalive.Web",
             "stopAtEntry": false,
             "serverReadyAction": {
                 "action": "openExternally",

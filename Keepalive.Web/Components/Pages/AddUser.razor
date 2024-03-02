@@ -1,0 +1,90 @@
+@page "/user/add"
+@rendermode InteractiveServer
+@inject ILogger<AddUser> logger
+@inject KeepaliveContext context
+
+<PasswordProtection>
+    @if(!success)
+    {
+        <p>@message</p>
+        <form>
+            <label for="username">Username:</label>
+            <input name="username" @bind=username />
+            <label for="email">Email:</label>
+            <input name="email" @bind=email />
+            <br>
+            <label for="emergencyEmail">Emergency Email:</label>
+            <input name="emergencyEmail" @bind=emergencyEmail />
+            <label for="emergencyEmailBody">Emergency Email Body:</label>
+            <input name="emergencyEmailBody" @bind=emergencyEmailBody />
+            <br>
+            <label for="checkIntervalDays">Check Interval Days:</label>
+            <input name="checkIntervalDays" @bind=checkIntervalDays />
+            <label for="missThreshold">Miss Threshold:</label>
+            <input name="missThreshold" @bind=missThreshold />
+            <button type="button" name="password_button" @onclick="Submit">Submit</button>    
+            </form>
+    }
+    else
+    {
+        <p>@message</p>
+    }
+</PasswordProtection>
+
+@code
+{
+    private string username = string.Empty;
+    private string email = string.Empty;
+    private string emergencyEmail = string.Empty;
+    private string emergencyEmailBody = string.Empty;
+    private int checkIntervalDays = 7;
+    private int missThreshold = 3;
+    private string message = string.Empty;
+    private bool success = false;
+
+    public void Submit(MouseEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            message = "Username is empty.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            message = "Email is empty.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(emergencyEmail))
+        {
+            message = "EmergencyEmail is empty.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(emergencyEmailBody))
+        {
+            message = "EmergencyEmailBody is empty.";
+            return;
+        }
+
+        if (checkIntervalDays <= 0 || checkIntervalDays > 30)
+        {
+            message = "CheckIntervalDays is invalid.";
+            return;
+        }
+
+        if (missThreshold <= 0 || missThreshold > 30)
+        {
+            message = "MissThreshold is invalid.";
+            return;
+        }
+
+        var user = new User{Name=username, Email=email, EmergencyEmail=emergencyEmail, EmergencyEmailBody=emergencyEmailBody, CheckIntervalDays=checkIntervalDays, MissThreshold=missThreshold};
+        context.Users.Add(user);
+        context.SaveChanges();
+        message = $"User {user.Name} added.";
+        success = true;
+        logger.LogInformation(message);
+    }
+}

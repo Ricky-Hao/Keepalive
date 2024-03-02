@@ -16,7 +16,7 @@ namespace Keepalive.Web.HostedServices
         private readonly Timer timer;
         private readonly AutoResetEvent autoResetEvent = new(false);
         private readonly IServiceProvider serviceProvider;
-        private readonly TimeSpan timerInterval = TimeSpan.FromMinutes(1);
+        private readonly TimeSpan timerInterval = TimeSpan.FromHours(1);
         private readonly ILogger<KeepaliveService> logger;
 
         public KeepaliveService(ServiceConfig serviceConfig, IServiceProvider serviceProvider, ILogger<KeepaliveService> logger)

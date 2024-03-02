@@ -13,7 +13,6 @@ namespace Keepalive.Database.Data
 
             var users = new User[]
             {
-                new User{Name="RickyHao", Email="a959695@live.com", CheckIntervalDays=7, EmergencyEmail="root@rickyhao.com", EmergencyEmailBody="TestBody", MissCount=0},
             };
             context.Users.AddRange(users);
             context.SaveChanges();

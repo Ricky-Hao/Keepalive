@@ -1,7 +1,43 @@
 ﻿@page "/"
+@inject KeepaliveContext context
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Miss Count</th>
+            <th>Last Seen</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Items)
+        {
+            <tr>
+                <td>@item.Item1.Name</td>
+                <td>@item.Item1.MissCount</td>
+                <td>@item.Item2</td>
+            </tr>
+        }
+    </tbody>
+</table>
 
-Welcome to your new app.
+@code
+{
+    public List<Tuple<User, string>> Items { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        foreach (var user in context.Users)
+        {
+            var latestRecord = (from record in context.KeepaliveRecords orderby record.CheckTimestamp descending select record).FirstOrDefault();
+            if (latestRecord?.CheckTimestamp is null || latestRecord?.CheckTimestamp == 0)
+                Items.Add(new (user, string.Empty));
+            else
+                Items.Add(new (user, DateTimeOffset.FromUnixTimeSeconds(latestRecord!.CheckTimestamp).ToString("yyyy-MM-dd HH:mm:ss")));
+        }
+    }
+}

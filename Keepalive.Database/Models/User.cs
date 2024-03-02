@@ -22,5 +22,7 @@ namespace Keepalive.Database.Models
         public required int CheckIntervalDays { get; set; } = 7;
 
         public int MissCount { get; set; } = 0;
+
+        public int MissThreshold { get; set; } = 3;
     }
 }

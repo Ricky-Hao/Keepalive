@@ -1,0 +1,41 @@
+@page "/keepalive/{recordId}"
+@inject KeepaliveContext context
+
+<h1>Keepalive</h1>
+@if(string.IsNullOrWhiteSpace(ExceptionMessage))
+{
+    <body>Checked @RecordId.</body>
+}
+else
+{
+    <body>@ExceptionMessage</body>
+}
+
+@code {
+    [Parameter]
+    public required string RecordId { get; set; }
+
+    public string ExceptionMessage { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        var record = context.KeepaliveRecords.Where(x => x.Id == Guid.Parse(RecordId)).FirstOrDefault();
+        if (record is null)
+            ExceptionMessage = $"Record {RecordId} not found.";
+        else
+        {
+            record.CheckTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var user = context.Users.Where(x => x.Id == record.UserId).FirstOrDefault();
+            if (user is null)
+                ExceptionMessage = $"User of record {RecordId} not found.";
+            else
+            {
+                user.MissCount = 0;
+                context.Users.Update(user);
+                context.KeepaliveRecords.Update(record);
+                await context.SaveChangesAsync();
+            }
+        }
+    }
+}

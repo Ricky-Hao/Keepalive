@@ -6,8 +6,8 @@ namespace Keepalive.Database.Models
 
         public required Guid UserId { get; set; }
 
-        public double CreateTimestamp { get; set; } = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        public long CreateTimestamp { get; set; } = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
-        public double CheckTimestamp { get; set; } = 0;
+        public long CheckTimestamp { get; set; } = 0;
     }
 }

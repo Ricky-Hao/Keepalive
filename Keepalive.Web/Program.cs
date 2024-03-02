@@ -20,7 +20,6 @@ public class Program
         var serviceConfig = builder.Configuration.GetSection("Service").Get<ServiceConfig>() ?? throw new Exception($"Service Config is null.");
         builder.Services
             .AddSingleton<ServiceConfig>(serviceConfig)
-            .AddDbContextFactory<KeepaliveContext>(options => options.UseSqlite($"Data Source={serviceConfig.Database}"))
             .AddDbContext<KeepaliveContext>(options => options.UseSqlite($"Data Source={serviceConfig.Database}"))
             .AddScoped(services =>
             {
@@ -50,9 +49,7 @@ public class Program
 
         using (var scope = app.Services.CreateScope())
         {
-            var services = scope.ServiceProvider;
-
-            var context = services.GetRequiredService<KeepaliveContext>();
+            var context = scope.ServiceProvider.GetRequiredService<KeepaliveContext>();
             context.Database.EnsureCreated();
             KeepaliveInitialize.Initialize(context);
         }

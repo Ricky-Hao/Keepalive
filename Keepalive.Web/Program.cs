@@ -3,6 +3,7 @@ using System.Net.Mail;
 
 using Keepalive.Configs;
 using Keepalive.Database.Data;
+using Keepalive.Web.Components;
 using Keepalive.Web.HostedServices;
 
 using Microsoft.EntityFrameworkCore;
